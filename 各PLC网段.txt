@@ -1,0 +1,4 @@
+汇川AM系列：192.168.1.88
+telnet  root 空
+
+xinjie XD5E-24R-E 192.168.6.6
