@@ -65,7 +65,7 @@ def CHANGE_0x05(data:bytes):
         new_data = int.to_bytes(newX,6)
         return new_data
     except:
-        raise Exception("Error in CHANGE_0x05!")
+        pass
 
 def CHANGE_0x06(data:bytes):
     """
@@ -84,7 +84,7 @@ def CHANGE_0x06(data:bytes):
         new_data = CHANGE.SINGLE_BYTE_CHANGE(new_data,pos)
         return new_data
     except:
-        raise Exception("Error in CHANGE_0x06!")
+        pass
 
 
 def CHANGE_0x08(data:bytes):
@@ -188,7 +188,7 @@ def CHANGE_0x08(data:bytes):
         # print("[+] new_data : ",new_data)
         return new_data
     except:
-        raise Exception("Error in CHANGE_0x08!")
+        pass
 
 def CHANGE_0x0F(data:bytes):
     """

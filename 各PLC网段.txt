@@ -2,3 +2,5 @@
 telnet  root 空
 
 xinjie XD5E-24R-E 192.168.6.6
+
+wago: 192.168.1.3 开了 80 502 2455

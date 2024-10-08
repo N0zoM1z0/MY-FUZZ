@@ -66,7 +66,7 @@ def BFS(data:bytes,func):
 
 def new_socket():
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    s.connect(("192.168.1.88",502))
+    s.connect(("192.168.1.3",502))
     return s
 
 DATAS = PACKET_DATA.MODBUS.DATAS
