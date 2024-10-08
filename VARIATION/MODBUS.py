@@ -258,3 +258,92 @@ CRAZY = 1 # 是否更离谱的fuzz……
 # print(CHANGE_1(b'\x00\x12\x34\x56'))
 
 # print(CHANGE.INC_ONE_BYTE_CHANGE(b'\x00\x11\x22\x33',1))
+
+def GENERAL_CHANGE(data:bytes):
+    """
+    不拘泥于某个功能码
+    而是针对modbus-tcp的通用fuzz (只考虑总结构)
+
+    UnitID | FCode | Data
+
+    考虑如下优化:
+
+    1. Data一般取偶数字节
+    2. Data长度为4B居多
+    """
+    try:
+        new_data = []
+        new_data += data[:2] # UnitID will remain unchanged
+        FCode = random.randint(1,0x10)
+        new_data += int.to_bytes(FCode,1) # FCode
+        prob = random.randint(0,65536)
+        dataLen = 0
+        if prob % 17 != 1:
+            dataLen = 4
+        else:
+            dataLen = random.randint(2,10)
+            dataLen = random.randint(1,dataLen)
+            dataLen <<= 1
+        
+        prob = random.randint(0,65536)
+        bt = 0
+        if prob & 1:
+            bt = random.randint(0,256)
+            new_data += int.to_bytes(bt,1) * dataLen
+        else:
+            for i in range(0,len(dataLen),2):
+                bt = random.randint(0,256)
+                new_data += int.to_bytes(bt,1) * 2
+        
+        return new_data
+    except:
+        return data
+
+def GENERAL_FUZZ_CHANGE(data:bytes):
+    """
+    呃呃呃。。。前面的写忘了, 是在fuzz中。。。要在原来的基础上变异。。。😂
+    """
+    try:
+        new_data = b''
+        prob = random.randint(0,65536)
+        if prob % 4096 == 17:
+            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[:4])
+        else:
+            new_data += data[:4]
+        BYTE_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[:2]
+        INC_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[2:]
+        prob = random.randint(0,65536)
+        """
+        多BYTE 少INC
+        """
+        if prob % 17 != 13:
+            func = random.choice(BYTE_CHANGE_FUNCS)
+        else:
+            func = random.choice(INC_CHANGE_FUNCS)
+        l = 2
+        prob = random.randint(0,65536)
+        if prob % 17 == 1:
+            l = random.randint(2,10)
+            l = random.randint(2,l)
+            l <<= 1
+        try:
+            poss = random.sample(range(1, len(data[4:]) + 1), l)
+        except:
+            poss = [random.randint(0,len(data[4:]))]
+        pos = random.randint(0,len(data[4:]))
+        if func == CHANGE.SINGLE_BYTE_CHANGE:
+            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[4:],pos)
+        elif func == CHANGE.MULTI_BYTE_CHANGE:
+            new_data += CHANGE.MULTI_BYTE_CHANGE(data[4:],poss)
+        elif func == CHANGE.INC_ONE_BYTE_CHANGE:
+            new_data += CHANGE.INC_ONE_BYTE_CHANGE(data[4:],pos)
+        elif func == CHANGE.INC_MULTI_BYTE_CHANGE:
+            new_data += CHANGE.INC_MULTI_BYTE_CHANGE(data[4:],poss)
+        elif func == CHANGE.INC_CRAZY_BYTE_CHANGE:
+            new_data += CHANGE.INC_CRAZY_BYTE_CHANGE(data[4:],poss)
+        return new_data
+
+    except:
+        return data
+    
+FUNCTIONS = [GENERAL_FUZZ_CHANGE]

@@ -8,10 +8,14 @@ TODO:
 """
 
 import socket
+import HASH.HASH_FUNC
+import HASH.HASH_MAP
 import PACKET_DATA
 import PACKET_DATA.MODBUS
 import VARIATION
+import VARIATION.CHANGE
 import VARIATION.MODBUS
+import HASH
 
 def BFS(data:bytes,func):
     """
@@ -25,7 +29,7 @@ def BFS(data:bytes,func):
     time0 = time.time()
     while True:
         deltime = time.time() - time0
-        if (deltime > 600): # 这个根据情况调整(比如挂着跑就开大点)
+        if (deltime > 60*30): # 这个根据情况调整(比如挂着跑就开大点)
             break
         if(len(queue) >= MAX_LEN):
             """
@@ -33,8 +37,9 @@ def BFS(data:bytes,func):
             想了想, 不如这么随机sample一下, 说不定还能跳出当前局部, 达到更好的效果
             """
             import random
-            queue = random.sample(queue,1024)
+            queue = random.sample(queue,65536 >> 2)
             cur = 0
+            HASH.HASH_FUNC.HASHMAP.clear()
             pass
         print(f"\r[-] func : {func.__name__:<14} time : {deltime:.2f}s  "
               f"len of queue : {len(queue):<5}   cur : {cur}")
@@ -58,15 +63,16 @@ def BFS(data:bytes,func):
 
         for i in range(16):
             newX = func(top)
-            queue.append(newX)
+            if HASH.HASH_FUNC.put(newX) == True:
+                queue.append(newX)
         cur = (cur + 1) % MAX_LEN
-        time.sleep(0.25)
+        time.sleep(0.5)
 
     pass
 
 def new_socket():
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    s.connect(("192.168.1.3",502))
+    s.connect(("192.168.1.88",502))
     return s
 
 DATAS = PACKET_DATA.MODBUS.DATAS
@@ -75,12 +81,13 @@ PACK = PACKET_DATA.MODBUS.PACK
 
 while True:
     for i in range(len(DATAS)):
-        if (i<len(FUNCS) and FUNCS[i]!=None):
+        if (i<len(FUNCS) and FUNCS[i]!=None and DATAS[i] != None):
             bfs = 1
         else:
             bfs = 0    
+        # bfs = 1
         if bfs:
-            BFS(DATAS[i],FUNCS[i])
+            BFS(DATAS[i],VARIATION.MODBUS.GENERAL_FUZZ_CHANGE)
         else:
             try:
                 s = new_socket()
