@@ -306,10 +306,14 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
     try:
         new_data = b''
         prob = random.randint(0,65536)
-        if prob % 4096 == 17:
-            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[:4])
+        if prob % 64 == 17:
+            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[:1])
+            # 主要可能引起DoS的是功能码字段
+            fcode = random.randint(0x10,0xFF)
+            fcode = random.choice([fcode,90,43])
+            new_data += int.to_bytes(fcode,1)
         else:
-            new_data += data[:4]
+            new_data += data[:2]
         BYTE_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[:2]
         INC_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[2:]
         prob = random.randint(0,65536)
@@ -327,20 +331,20 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
             l = random.randint(2,l)
             l <<= 1
         try:
-            poss = random.sample(range(1, len(data[4:]) + 1), l)
+            poss = random.sample(range(1, len(data[2:]) + 1), l)
         except:
-            poss = [random.randint(0,len(data[4:]))]
-        pos = random.randint(0,len(data[4:]))
+            poss = [random.randint(0,len(data[2:]))]
+        pos = random.randint(0,len(data[2:]))
         if func == CHANGE.SINGLE_BYTE_CHANGE:
-            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[4:],pos)
+            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[2:],pos)
         elif func == CHANGE.MULTI_BYTE_CHANGE:
-            new_data += CHANGE.MULTI_BYTE_CHANGE(data[4:],poss)
+            new_data += CHANGE.MULTI_BYTE_CHANGE(data[2:],poss)
         elif func == CHANGE.INC_ONE_BYTE_CHANGE:
-            new_data += CHANGE.INC_ONE_BYTE_CHANGE(data[4:],pos)
+            new_data += CHANGE.INC_ONE_BYTE_CHANGE(data[2:],pos)
         elif func == CHANGE.INC_MULTI_BYTE_CHANGE:
-            new_data += CHANGE.INC_MULTI_BYTE_CHANGE(data[4:],poss)
+            new_data += CHANGE.INC_MULTI_BYTE_CHANGE(data[2:],poss)
         elif func == CHANGE.INC_CRAZY_BYTE_CHANGE:
-            new_data += CHANGE.INC_CRAZY_BYTE_CHANGE(data[4:],poss)
+            new_data += CHANGE.INC_CRAZY_BYTE_CHANGE(data[2:],poss)
         return new_data
 
     except:
