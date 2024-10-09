@@ -314,13 +314,13 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
             new_data += int.to_bytes(fcode,1)
         else:
             new_data += data[:2]
-        BYTE_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[:2]
-        INC_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[2:]
+        BYTE_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[:3]
+        INC_CHANGE_FUNCS = CHANGE.CHANGE_FUNCS[3:]
         prob = random.randint(0,65536)
         """
         多BYTE 少INC
         """
-        if prob % 17 != 13:
+        if prob % 7 != 3:
             func = random.choice(BYTE_CHANGE_FUNCS)
         else:
             func = random.choice(INC_CHANGE_FUNCS)
@@ -345,6 +345,22 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
             new_data += CHANGE.INC_MULTI_BYTE_CHANGE(data[2:],poss)
         elif func == CHANGE.INC_CRAZY_BYTE_CHANGE:
             new_data += CHANGE.INC_CRAZY_BYTE_CHANGE(data[2:],poss)
+
+        prob = random.randint(0,65536)
+        if prob % 97 == 17: # 适当变异发多倍长度, 稍作修改的包
+            _new_data = new_data
+            ls = [2,4,6,8]
+            l = random.choice(ls)
+            for i in range(l):
+                try:
+                    poss = random.sample(range(1, len(_new_data[2:]) + 1), l)
+                except:
+                    poss = [random.randint(0,len(_new_data[2:]))]
+                pos = random.randint(0,len(data[2:]))
+                if prob % 7 == 3:
+                    new_data += CHANGE.MULTI_BYTE_CHANGE(_new_data[2:],poss)
+                else:
+                    new_data += CHANGE.SINGLE_BYTE_CHANGE(_new_data[2:],pos)
         return new_data
 
     except:
