@@ -226,4 +226,4 @@ CHANGE_FUNCS = [SINGLE_BYTE_CHANGE,MULTI_BYTE_CHANGE,SINGLE_WORD_CHANGE,INC_ONE_
 #               0                  1                 2                   3                     4
 
 
-print(SINGLE_WORD_CHANGE(b'\x01\x02\x03\x04\x05\x06',2))
+# print(SINGLE_WORD_CHANGE(b'\x01\x02\x03\x04\x05\x06',2))

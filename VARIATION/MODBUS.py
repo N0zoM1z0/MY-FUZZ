@@ -306,10 +306,10 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
     try:
         new_data = b''
         prob = random.randint(0,65536)
-        if prob % 64 == 17:
-            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[:1])
+        if prob % 13 == 7:
+            new_data += CHANGE.SINGLE_BYTE_CHANGE(data[:1],-1)
             # 主要可能引起DoS的是功能码字段
-            fcode = random.randint(0x10,0xFF)
+            fcode = random.randint(0x10,0x7F)
             fcode = random.choice([fcode,90,43])
             new_data += int.to_bytes(fcode,1)
         else:
@@ -347,7 +347,7 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
             new_data += CHANGE.INC_CRAZY_BYTE_CHANGE(data[2:],poss)
 
         prob = random.randint(0,65536)
-        if prob % 97 == 17: # 适当变异发多倍长度, 稍作修改的包
+        if prob % 19 == 17: # 适当变异发多倍长度, 稍作修改的包 造 malformed packet; 看AFL的变异包得到的启发。。。
             _new_data = new_data
             ls = [2,4,6,8]
             l = random.choice(ls)
