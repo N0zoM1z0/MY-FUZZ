@@ -21,8 +21,8 @@ Fuzz for ICS.
 - [ ] modbus功能码完善
 - [x] 异常处理添加（直接pass……2333。。。）
 - [ ] 交叉功能码fuzz实现
-- [ ] 多字节的变异
-- [ ] map存hash判重
+- [x] 多字节的变异
+- [x] map存hash判重
 
 
 ## Improvement
