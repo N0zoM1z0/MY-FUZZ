@@ -42,8 +42,11 @@ def BFS(data:bytes,func):
             HASH.HASH_FUNC.HASHMAP.clear()
             pass
         print(f"\r[-] func : {func.__name__:<14} time : {deltime:.2f}s  "
-              f"len of queue : {len(queue):<5}   cur : {cur}")
-        top = queue[cur]
+              f"len of queue : {len(queue):<5}   cur : {cur}    total time : {time.time() - start_time:.2f}")
+        try:
+            top = queue[cur]
+        except:
+            break
         try:
             s = new_socket()
             s.send(PACK(top))
@@ -78,6 +81,8 @@ def new_socket():
 DATAS = PACKET_DATA.MODBUS.DATAS
 FUNCS = VARIATION.MODBUS.FUNCTIONS
 PACK = PACKET_DATA.MODBUS.PACK
+import time
+start_time = time.time()
 
 while True:
     for i in range(len(DATAS)):
