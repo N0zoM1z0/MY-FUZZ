@@ -3,6 +3,11 @@ EthernetIP协议
 44818 端口
 或许把CIP也包含尽量比较好;
 CIP也是在ENIP的基础上加了一个Common Industrial Protocol(Command Specific Data不为空)
+
+TODO
+1. CIP (感觉optional吧。。。)
+2. 优化 (比如增加初始报文种类)
+3. ...
 """
 
 import random
@@ -173,7 +178,7 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
             except:
                 pass
         else:
-            Session_Handle = Session_Handle
+            Session_Handle = int.from_bytes(Session_Handle)
 
         """
         Status
@@ -207,10 +212,29 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
                             Status,Sender_Context,Options,Command_Specific_Data
                         )
         new_data = enip.PACK()
+        """
+        同样的, 适当变异发多倍长度
+        """
+        prob = random.randint(0,65536)
+        if prob % 19 == 17:
+            _new_data = new_data
+            ls = [2,4,6,8]
+            l = random.choice(ls)
+            for i in range(l):
+                try:
+                    poss = random.sample(range(1, len(_new_data) + 1), l)
+                except:
+                    poss = [random.randint(0,len(_new_data))]
+                pos = random.randint(0,len(data))
+                if prob % 7 == 3:
+                    new_data += CHANGE.MULTI_BYTE_CHANGE(_new_data,poss)
+                else:
+                    new_data += CHANGE.SINGLE_BYTE_CHANGE(_new_data,pos)
+
         return new_data
     except:
         return data
 
-FUNCTIONS = []
-packet = ENIP_PACKET(1,2,3,4,5,6,7)
-print(packet)
+FUNCTIONS = [GENERAL_FUZZ_CHANGE]
+# packet = ENIP_PACKET(1,2,3,4,5,6,7)
+# print(packet)
