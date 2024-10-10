@@ -1,5 +1,6 @@
 """
 EthernetIP协议
+44818 端口
 或许把CIP也包含尽量比较好;
 CIP也是在ENIP的基础上加了一个Common Industrial Protocol(Command Specific Data不为空)
 """
