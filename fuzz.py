@@ -50,7 +50,11 @@ def BFS(data:bytes,func):
         try:
             s = new_socket()
             s.send(PACK(top))
+            # 保证modbus双方通信完成后再close, 同时close后, sleep保证close包发送完全.
+            # 避免出现重传的包, 影响fuzz结果
+            time.sleep(0.15)
             s.close()
+            time.sleep(0.35)
         except:
             try:
                 time.sleep(1)
@@ -69,7 +73,7 @@ def BFS(data:bytes,func):
             if HASH.HASH_FUNC.put(newX) == True:
                 queue.append(newX)
         cur = (cur + 1) % MAX_LEN
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
     pass
 
