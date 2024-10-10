@@ -12,6 +12,8 @@ def hash(x:bytes):
     except:
         return b'\xba\xde\xff'
 def put(x:bytes):
+    if (len(HASHMAP) > MAX_LEN):
+        HASHMAP = HASHMAP[MAX_LEN//2:]
     _hash = hash(x)
     if Is_Repeat(_hash):
         return False
@@ -20,7 +22,7 @@ def put(x:bytes):
         return True
 
 HASHMAP = []
-
+MAX_LEN = 65536 << 2
 def Is_Repeat(hash:bytes):
     if HASHMAP.count(hash) != 0:
         return True

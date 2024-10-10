@@ -41,7 +41,7 @@ def BFS(data:bytes,func):
             import random
             queue = random.sample(queue,65536 >> 2)
             cur = 0
-            HASH.HASH_FUNC.HASHMAP.clear()
+            # HASH.HASH_FUNC.HASHMAP.clear() # 不应该clear..
             pass
         print(f"\r[-] func : {func.__name__:<14} time : {deltime:.2f}s  "
               f"len of queue : {len(queue):<5}   cur : {cur}    total time : {time.time() - start_time:.2f}")
@@ -101,9 +101,11 @@ while True:
             bfs = 1
         else:
             bfs = 0    
-        # bfs = 1
+        bfs = 1
         if bfs:
-            BFS(DATAS[i],VARIATION.MODBUS.GENERAL_FUZZ_CHANGE)
+            # func = VARIATION.MODBUS.GENERAL_FUZZ_CHANGE
+            func = VARIATION.ETHERNETIP.GENERAL_FUZZ_CHANGE
+            BFS(DATAS[i],func)
         else:
             try:
                 s = new_socket()
