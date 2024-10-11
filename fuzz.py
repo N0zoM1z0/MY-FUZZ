@@ -4,20 +4,15 @@
 TODO:
 1. 加交叉功能码的fuzz(现在只是单个单个的测, 还应该考虑交叉的情况)
 2. MAX_LEN选大点是否更好?
-3. 
+3. 稍微封装一下
+4. 命令行传参数? (optional, 显得更Advanced一点 :) )
+5. 
 """
 
 import socket
 import HASH.HASH_FUNC
 import HASH.HASH_MAP
-import PACKET_DATA
-import PACKET_DATA.MODBUS
-import PACKET_DATA.ETHERNETIP
-import VARIATION
-import VARIATION.CHANGE
-import VARIATION.MODBUS
-import VARIATION.ETHERNETIP
-import HASH
+import CONFIG
 
 def BFS(data:bytes,func):
     """
@@ -25,13 +20,13 @@ def BFS(data:bytes,func):
     """
     import time
     queue = []
-    MAX_LEN = 65536
+    MAX_LEN = CONFIG.BFS_QUEUE_MAX_LEN
     cur = 0
     queue.append(data)
     time0 = time.time()
     while True:
         deltime = time.time() - time0
-        if (deltime > 60*30): # 这个根据情况调整(比如挂着跑就开大点)
+        if (deltime > CONFIG.BFS_DEL_TIME): # 这个根据情况调整(比如挂着跑就开大点)
             break
         if(len(queue) >= MAX_LEN):
             """
@@ -39,7 +34,7 @@ def BFS(data:bytes,func):
             想了想, 不如这么随机sample一下, 说不定还能跳出当前局部, 达到更好的效果
             """
             import random
-            queue = random.sample(queue,65536 >> 2)
+            queue = random.sample(queue,MAX_LEN >> 2)
             cur = 0
             # HASH.HASH_FUNC.HASHMAP.clear() # 不应该clear..
             pass
@@ -53,6 +48,7 @@ def BFS(data:bytes,func):
             s = new_socket()
             s.send(PACK(top))
             # 保证modbus双方通信完成后再close, 同时close后, sleep保证close包发送完全.
+            # 其实就是使得packet的req和rep中间不掺杂其他(如TCP)报文
             # 避免出现重传的包, 影响fuzz结果
             time.sleep(0.15)
             s.close()
@@ -81,30 +77,49 @@ def BFS(data:bytes,func):
 
 def new_socket():
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    s.connect(("192.168.250.2",44818))
+    s.connect((CONFIG.IP,CONFIG.PORT))
     # s.connect(("192.168.1.88",502))
     return s
 
-# DATAS = PACKET_DATA.MODBUS.DATAS
-# FUNCS = VARIATION.MODBUS.FUNCTIONS
-# PACK = PACKET_DATA.MODBUS.PACK
-DATAS = PACKET_DATA.ETHERNETIP.DATAS
-FUNCS = VARIATION.ETHERNETIP.FUNCTIONS
-PACK = PACKET_DATA.ETHERNETIP.PACK
+if CONFIG.PROTOCOL == "MODBUS":
+    import PACKET_DATA.MODBUS
+    import VARIATION.MODBUS
+    DATAS = PACKET_DATA.MODBUS.DATAS
+    FUNCS = VARIATION.MODBUS.FUNCTIONS
+    PACK = PACKET_DATA.MODBUS.PACK
+elif CONFIG.PROTOCOL == "ETHERNETIP":
+    import PACKET_DATA.ETHERNETIP
+    import VARIATION.ETHERNETIP
+    DATAS = PACKET_DATA.ETHERNETIP.DATAS
+    FUNCS = VARIATION.ETHERNETIP.FUNCTIONS
+    PACK = PACKET_DATA.ETHERNETIP.PACK
+elif CONFIG.PROTOCOL == "OPCUA":
+    import PACKET_DATA.OPCUA
+    import VARIATION.OPCUA
+    DATAS = PACKET_DATA.OPCUA.DATAS
+    FUNCS = VARIATION.OPCUA.FUNCTIONS
+    PACK = PACKET_DATA.OPCUA.PACK
+    
 
 import time
 start_time = time.time()
 
 while True:
-    for i in range(len(DATAS)):
+    # for i in range(len(DATAS)):
+    # 将遍历DATAS改为了随机;
+    if(1):
+        import random
+        i = random.randint(0,len(DATAS)-1)
         if (i<len(FUNCS) and FUNCS[i]!=None and DATAS[i] != None):
             bfs = 1
         else:
             bfs = 0    
         bfs = 1
         if bfs:
-            # func = VARIATION.MODBUS.GENERAL_FUZZ_CHANGE
-            func = VARIATION.ETHERNETIP.GENERAL_FUZZ_CHANGE
+            if CONFIG.PROTOCOL == "MODBUS":
+                func = VARIATION.MODBUS.GENERAL_FUZZ_CHANGE
+            elif CONFIG.PROTOCOL == "ETHERNETIP":
+                func = VARIATION.ETHERNETIP.GENERAL_FUZZ_CHANGE
             BFS(DATAS[i],func)
         else:
             try:

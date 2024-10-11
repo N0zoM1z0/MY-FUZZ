@@ -1,3 +1,5 @@
+HASHMAP = []
+MAX_LEN = 65536 << 2 # 存储空间考量
 
 def ROL32(x,r):
     return ((x << r) | (x >> (32 - r))) & 0xFFFFFFFF
@@ -12,6 +14,7 @@ def hash(x:bytes):
     except:
         return b'\xba\xde\xff'
 def put(x:bytes):
+    global HASHMAP
     if (len(HASHMAP) > MAX_LEN):
         HASHMAP = HASHMAP[MAX_LEN//2:]
     _hash = hash(x)
@@ -21,8 +24,7 @@ def put(x:bytes):
         HASHMAP.append(_hash)
         return True
 
-HASHMAP = []
-MAX_LEN = 65536 << 2
+
 def Is_Repeat(hash:bytes):
     if HASHMAP.count(hash) != 0:
         return True

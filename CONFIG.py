@@ -1,0 +1,17 @@
+"""
+配置整体fuzz的协议类型
+
+MODBUS ETHERNETIP 
+"""
+PROTOCOL = "ETHERNETIP"
+# PROTOCOL = "MODBUS"
+# PROTOCOL = "OPCUA"
+
+IP = "192.168.250.2"
+PORT = 44818
+
+"""
+BFS中 中的一些定义
+"""
+BFS_QUEUE_MAX_LEN = 65536
+BFS_DEL_TIME = 30*60

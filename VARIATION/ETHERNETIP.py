@@ -218,7 +218,7 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
         prob = random.randint(0,65536)
         if prob % 19 == 17:
             _new_data = new_data
-            ls = [2,4,6,8]
+            ls = [2,4,6,8,10,12]
             l = random.choice(ls)
             for i in range(l):
                 try:
