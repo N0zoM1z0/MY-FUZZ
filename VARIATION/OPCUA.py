@@ -85,72 +85,22 @@ def PAYLOAD_CHANGE(MessageType:bytes,MessageSize:int,Payload:bytes):
         """
         recBufSize
         """
-        l = random.randint(0,4)
-        func = random.choice(BYTE_CHANGE_FUNCS)
-        try:
-            poss = random.sample(range(1, len(recBufSize) + 1), l)
-        except:
-            poss = [random.randint(0,len(recBufSize))]
-        pos = random.randint(0,len(recBufSize))
-
-        if func == CHANGE.SINGLE_BYTE_CHANGE:
-            recBufSize = CHANGE.SINGLE_BYTE_CHANGE(recBufSize,pos)
-        elif func == CHANGE.MULTI_BYTE_CHANGE:
-            recBufSize = CHANGE.MULTI_BYTE_CHANGE(recBufSize,poss)
-
-        data += recBufSize
+        data += CHANGE.RND_CHANGE_BYTE(recBufSize)
 
         """
         sdBufSize
         """
-
-        func = random.choice(BYTE_CHANGE_FUNCS)
-        try:
-            poss = random.sample(range(1, len(sdBufSize) + 1), l)
-        except:
-            poss = [random.randint(0,len(sdBufSize))]
-        pos = random.randint(0,len(sdBufSize))
-
-        if func == CHANGE.SINGLE_BYTE_CHANGE:
-            sdBufSize = CHANGE.SINGLE_BYTE_CHANGE(sdBufSize,pos)
-        elif func == CHANGE.MULTI_BYTE_CHANGE:
-            sdBufSize = CHANGE.MULTI_BYTE_CHANGE(sdBufSize,poss)
-
-        data += sdBufSize
+        data += CHANGE.RND_CHANGE_BYTE(sdBufSize)
 
         """
         maxMsgSize
         """
-        func = random.choice(BYTE_CHANGE_FUNCS)
-        try:
-            poss = random.sample(range(1, len(maxMsgSize) + 1), l)
-        except:
-            poss = [random.randint(0,len(maxMsgSize))]
-        pos = random.randint(0,len(maxMsgSize))
-
-        if func == CHANGE.SINGLE_BYTE_CHANGE:
-            maxMsgSize = CHANGE.SINGLE_BYTE_CHANGE(maxMsgSize,pos)
-        elif func == CHANGE.MULTI_BYTE_CHANGE:
-            maxMsgSize = CHANGE.MULTI_BYTE_CHANGE(maxMsgSize,poss)
-
-        data += maxMsgSize
+        data += CHANGE.RND_CHANGE_BYTE(maxMsgSize)
 
         """
         maxBlkCnt
         """
-        func = random.choice(BYTE_CHANGE_FUNCS)
-        try:
-            poss = random.sample(range(1, len(maxBlkCnt) + 1), l)
-        except:
-            poss = [random.randint(0,len(maxBlkCnt))]
-        pos = random.randint(0,len(maxBlkCnt))
-
-        if func == CHANGE.SINGLE_BYTE_CHANGE:
-            maxBlkCnt = CHANGE.SINGLE_BYTE_CHANGE(maxBlkCnt,pos)
-        elif func == CHANGE.MULTI_BYTE_CHANGE:
-            maxBlkCnt = CHANGE.MULTI_BYTE_CHANGE(maxBlkCnt,poss)
-
-        data += maxBlkCnt
+        data += CHANGE.RND_CHANGE_BYTE(maxBlkCnt)
 
         """
         EpUrl
@@ -160,27 +110,94 @@ def PAYLOAD_CHANGE(MessageType:bytes,MessageSize:int,Payload:bytes):
         1. 变异url?
         2. 增加url长度
         3. 还得考虑与MessageSize的契合...
+
+        主要是保证长度对应, 这个影响不大
         """
-        data += EpUrl
+        data += EpUrl[:11] + CHANGE.RND_CHANGE_BYTE(EpUrl[11:])
         return data
 
 
 
     elif MessageType == b'ACK':
         """
+        ACK报文
+        虽说一般都是服务端发回给我们, 但是fuzz随便弄, 指不定把PLC弄崩溃了呢。。
+        pVersion(4B)  |  recBufSize(4B LE)  |  sdBufSize(4B LE)  |  maxMsgSize(4B LE)  |  maxBlkCnt(4B LE)
         """
+        pVersion = Payload[:4]
+        recBufSize = Payload[4:8]
+        sdBufSize = Payload[8:12]
+        maxMsgSize = Payload[12:16]
+        maxBlkCnt = Payload[16:20]
+
+        data = b''
+
+        """
+        pVersion
+        """
+        data += pVersion
+        
+        """
+        recBufSize
+        """
+        data += CHANGE.RND_CHANGE_BYTE(recBufSize)
+
+        """
+        sdBufSize
+        """
+        data += CHANGE.RND_CHANGE_BYTE(sdBufSize)
+
+        """
+        maxMsgSize
+        """
+        data += CHANGE.RND_CHANGE_BYTE(maxMsgSize)
+
+        """
+        maxBlkCnt
+        """
+        data += CHANGE.RND_CHANGE_BYTE(maxBlkCnt)
+
+        return data
+        
+
     elif MessageType == b'ERR':
         """
+        ErrCode (4B)  |  ErrReason (<= 4096B)
         """
+        ErrCode = Payload[:4]
+        ErrReason = Payload[4:]
+        data = b''
+
+        """
+        ErrCode
+        后续可以补一个ERRCODE列表, 现在就随便variate了
+        """
+        data += CHANGE.RND_CHANGE_BYTE(ErrCode)
+        
+        """
+        ErrReason
+        """
+        data += CHANGE.RND_CHANGE_BYTE(ErrReason)
+
+        return data
+
     elif MessageType == b'RHE':
         """
+        SvURL (<= 4096B)  |  EpURL (<= 4096B)
         """
+
+        """
+        ...
+
+        """
+        return Payload
 
 def GENERAL_FUZZ_CHANGE(data:bytes):
-        """
-
     """
-    
+    如果真要四种交叉的话, 得开多个队列。。。
+    或者不考虑有效报文, malformed也无妨
+    """
+    try:
         MessageType = data[:3]
         Reserved = data[3:4]
         MessageSize = data[4:8]
@@ -193,6 +210,7 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
         TODO:
         1. 四种
         """
+        MessageType = random.choice(OPCUA_PACKET.KNOWN_MTs)
         new_data += MessageType
 
         """
@@ -212,9 +230,27 @@ def GENERAL_FUZZ_CHANGE(data:bytes):
         """
         new_payload = PAYLOAD_CHANGE(MessageType,MessageSize,Payload)
         new_data += new_payload
-        return new_data
+        prob = random.randint(0,65536)
+        if prob % 117 == 1:
+            """
+            小概率不管长度, 发多少是多少, 甚至加长度
+            """
+            prob = random.randint(0,65536)
+            if prob % 3 == 1:
+                return new_data
+            else:
+                """
+                增加长度
+                """
+                l = random.randint(1,7)
+                for i in range(l):
+                    new_data += CHANGE.RND_CHANGE_BYTE(new_payload,0,2)
+                return new_data
+        else:
+            new_data = new_data.ljust(MessageSize,random.randbytes(1))
+            return new_data[:MessageSize]
 
-    
+    except:
         return data
 
-FUNCTIONS = []
+FUNCTIONS = [GENERAL_FUZZ_CHANGE]

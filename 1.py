@@ -8,9 +8,11 @@ data = bytes.fromhex(data)
 # Map = []
 # print(Map.count(b'\x123'))
 # print(data[:2])
-# import socket
-# s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-# s.connect(("192.168.1.88",4840))
+import socket
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.connect(("192.168.1.88",4840))
 data = VARIATION.OPCUA.GENERAL_FUZZ_CHANGE(data)
-# s.send(data)
+# data = "41434b461c000000000000000020000000000100c0ff81000a000000"
+# data = bytes.fromhex(data)
+s.send(data)
 print(data)

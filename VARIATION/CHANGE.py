@@ -221,6 +221,28 @@ def INC_CRAZY_BYTE_CHANGE(data:bytes,poss:list):
         pass
     return data
 
+def RND_CHANGE_BYTE(data:bytes,ratio:float = 0.5):
+    """
+    封装的一个常用的, 随机选择单/多字节变异的函数
+
+    @ratio: 变异比率
+    """
+    BYTE_CHANGE_FUNCS = CHANGE_FUNCS[:3]
+    func = random.choice(BYTE_CHANGE_FUNCS)
+    l = int(len(data)*ratio)
+    try:
+        poss = random.sample(range(1, len(data) + 1), l)
+    except:
+        poss = [random.randint(0,len(data))]
+    pos = random.randint(0,len(data))
+
+    if func == SINGLE_BYTE_CHANGE:
+        data = SINGLE_BYTE_CHANGE(data,pos)
+    elif func == MULTI_BYTE_CHANGE:
+        data = MULTI_BYTE_CHANGE(data,poss)
+    return data
+    
+
 
 CHANGE_FUNCS = [SINGLE_BYTE_CHANGE,MULTI_BYTE_CHANGE,SINGLE_WORD_CHANGE,INC_ONE_BYTE_CHANGE,INC_MULTI_BYTE_CHANGE,INC_CRAZY_BYTE_CHANGE]
 #               0                  1                 2                   3                     4

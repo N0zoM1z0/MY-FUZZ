@@ -120,6 +120,8 @@ while True:
                 func = VARIATION.MODBUS.GENERAL_FUZZ_CHANGE
             elif CONFIG.PROTOCOL == "ETHERNETIP":
                 func = VARIATION.ETHERNETIP.GENERAL_FUZZ_CHANGE
+            elif CONFIG.PROTOCOL == "OPCUA":
+                func = VARIATION.OPCUA.GENERAL_FUZZ_CHANGE
             BFS(DATAS[i],func)
         else:
             try:
